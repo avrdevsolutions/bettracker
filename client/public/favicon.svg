@@ -1,0 +1,8 @@
+<svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="40" height="40" rx="10" fill="url(#g)"/>
+  <path d="M10 10h6c2.5 0 4.5 1 4.5 3.5 0 1.5-0.8 2.5-2 3 1.5 0.5 2.5 1.8 2.5 3.5 0 2.8-2.2 4-5 4H10V10z M14 15.5h1.5c1 0 1.8-0.5 1.8-1.5s-0.8-1.5-1.8-1.5H14v3z M14 22h2c1.2 0 2-0.6 2-1.7 0-1.1-0.8-1.8-2-1.8h-2v3.5z" fill="white" opacity="0.95"/>
+  <path d="M22 10h10v3h-3.5v11h-3V13H22v-3z" fill="white" opacity="0.95"/>
+  <path d="M10 28.5 L16 26 L21 29 L26 25.5 L30 27.5" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="30" cy="27.5" r="2" fill="#34d399"/>
+  <defs><linearGradient id="g" x1="0" y1="0" x2="40" y2="40"><stop offset="0%" stop-color="#1c2540"/><stop offset="100%" stop-color="#0f1525"/></linearGradient></defs>
+</svg>

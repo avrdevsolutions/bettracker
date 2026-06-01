@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: server-config
+data:
+  PORT: {{ .Values.config.port | quote }}
+  NODE_ENV: {{ .Values.config.nodeEnv | quote }}
+  DATABASE_HOST: {{ .Values.config.databaseHost | quote }}
+  DATABASE_NAME: {{ .Values.config.databaseName | quote }}
+  DATABASE_PORT: {{ .Values.config.databasePort | quote }}
+  REDIS_URL: {{ .Values.config.redisUrl | quote }}
+  POSTGRES_DB: {{ .Values.config.postgresDb | quote }}
+  ALLOWED_ORIGIN: {{ .Values.config.allowedOrigin | quote }}

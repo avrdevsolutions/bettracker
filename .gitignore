@@ -6,14 +6,18 @@ dist/
 
 # Environment variables
 .env
-.env
 
 # IDE
 .idea/
+.vscode/*
+!.vscode/settings.json
 
 # Logs
-npm-debug.log*
+*.log
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Vite
+client/.vite/

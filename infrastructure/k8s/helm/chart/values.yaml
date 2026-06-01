@@ -1,0 +1,43 @@
+server:
+  image: 298808186203.dkr.ecr.eu-west-1.amazonaws.com/bettracker-server
+  tag: latest
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+client:
+  image: 298808186203.dkr.ecr.eu-west-1.amazonaws.com/bettracker-client
+  tag: latest
+  replicas: 1
+
+postgres:
+  image: postgres:16
+
+redis:
+  image: redis:7
+
+hpa:
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPU: 50
+
+config:
+  nodeEnv: production
+  port: "3000"
+  databaseHost: postgres-svc
+  databasePort: "5432"
+  databaseName: bettracker
+  redisUrl: "redis://redis-svc:6379"
+  postgresDb: bettracker
+  allowedOrigin: "*"
+
+secrets:
+  jwtSecret: ""
+  databasePassword: ""
+  databaseUser: ""
+  postgresUser: ""
+  postgresPassword: ""

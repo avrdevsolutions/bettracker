@@ -1,0 +1,12 @@
+server:
+  image: 298808186203.dkr.ecr.eu-west-1.amazonaws.com/bettracker-server
+  tag: v1.0.0
+
+client:
+  image: 298808186203.dkr.ecr.eu-west-1.amazonaws.com/bettracker-client
+  tag: v1.0.0
+  replicas: 3
+
+hpa:
+  minReplicas: 2
+  maxReplicas: 10
