@@ -11,6 +11,40 @@ spec:
       labels:
         app: server
     spec:
+      initContainers:
+        - name: run-migrations
+          image: {{ .Values.server.image }}:{{ .Values.server.tag }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              DATABASE_URL="postgres://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}" \
+              npx node-pg-migrate up -m migrations
+          env:
+            - name: DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: server-secrets
+                  key: DATABASE_USER
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: server-secrets
+                  key: DATABASE_PASSWORD
+            - name: DATABASE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: DATABASE_HOST
+            - name: DATABASE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: DATABASE_PORT
+            - name: DATABASE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: DATABASE_NAME
       containers:
         - name: server
           image: {{ .Values.server.image }}:{{ .Values.server.tag }}

@@ -1,0 +1,85 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main, develop]
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  ECR_SERVER: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/bettracker-server
+  ECR_CLIENT: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/bettracker-client
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set environment variables
+        run: |
+          SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+          echo "IMAGE_TAG=$SHORT_SHA" >> $GITHUB_ENV
+
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            echo "NAMESPACE=bettracker-prod" >> $GITHUB_ENV
+            echo "VALUES_FILE=values/production.yaml" >> $GITHUB_ENV
+            echo "JWT_SECRET=${{ secrets.PROD_JWT_SECRET }}" >> $GITHUB_ENV
+            echo "DATABASE_PASSWORD=${{ secrets.PROD_DATABASE_PASSWORD }}" >> $GITHUB_ENV
+            echo "DATABASE_USER=${{ secrets.PROD_DATABASE_USER }}" >> $GITHUB_ENV
+            echo "POSTGRES_USER=${{ secrets.PROD_POSTGRES_USER }}" >> $GITHUB_ENV
+            echo "POSTGRES_PASSWORD=${{ secrets.PROD_POSTGRES_PASSWORD }}" >> $GITHUB_ENV
+          else
+            echo "NAMESPACE=bettracker-staging" >> $GITHUB_ENV
+            echo "VALUES_FILE=values/staging.yaml" >> $GITHUB_ENV
+            echo "JWT_SECRET=${{ secrets.STAGING_JWT_SECRET }}" >> $GITHUB_ENV
+            echo "DATABASE_PASSWORD=${{ secrets.STAGING_DATABASE_PASSWORD }}" >> $GITHUB_ENV
+            echo "DATABASE_USER=${{ secrets.STAGING_DATABASE_USER }}" >> $GITHUB_ENV
+            echo "POSTGRES_USER=${{ secrets.STAGING_POSTGRES_USER }}" >> $GITHUB_ENV
+            echo "POSTGRES_PASSWORD=${{ secrets.STAGING_POSTGRES_PASSWORD }}" >> $GITHUB_ENV
+          fi
+
+      - name: Build and push server image
+        run: |
+          docker build --platform linux/amd64 -t $ECR_SERVER:$IMAGE_TAG ./server
+          docker push $ECR_SERVER:$IMAGE_TAG
+
+      - name: Build and push client image
+        run: |
+          docker build --platform linux/amd64 -t $ECR_CLIENT:$IMAGE_TAG ./client
+          docker push $ECR_CLIENT:$IMAGE_TAG
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name bettracker --region $AWS_REGION
+
+      - name: Deploy with Helm
+        working-directory: infrastructure/k8s/helm
+        run: |
+          helm upgrade --install bettracker ./chart \
+            -n $NAMESPACE \
+            -f $VALUES_FILE \
+            --set server.tag=$IMAGE_TAG \
+            --set client.tag=$IMAGE_TAG \
+            --set secrets.jwtSecret=$JWT_SECRET \
+            --set secrets.databasePassword=$DATABASE_PASSWORD \
+            --set secrets.databaseUser=$DATABASE_USER \
+            --set secrets.postgresUser=$POSTGRES_USER \
+            --set secrets.postgresPassword=$POSTGRES_PASSWORD
